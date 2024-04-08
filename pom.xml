@@ -83,4 +83,23 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <exec.mainClass>org.guanzon.appdriver.base.AppdriverBase</exec.mainClass>
     </properties>
+    <developers>
+        <developer>
+            <name>Rex S. Adversalo</name>
+            <email>rsadversalo@guanzongroup.com.ph</email>
+            <organization>Guanzon Group of Companies</organization>
+        </developer>
+           
+        <developer>
+            <name>Marlon A. Sayson</name>
+            <email>masayson@guanzongroup.com.ph</email>
+            <organization>Guanzon Group of Companies</organization>
+        </developer>
+        
+        <developer>    
+            <name>Michael T. Cuison</name>
+            <email>mtcuison@guanzongroup.com.ph</email>
+            <organization>Guanzon Group of Companies</organization>
+        </developer>
+    </developers>
 </project>
