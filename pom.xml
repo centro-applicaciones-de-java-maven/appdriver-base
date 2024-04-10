@@ -75,6 +75,12 @@
             <version>5.1.49</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.ibm.icu/icu4j -->
+        <dependency>
+            <groupId>com.ibm.icu</groupId>
+            <artifactId>icu4j</artifactId>
+            <version>74.2</version>
+        </dependency>
 
     </dependencies>
     <properties>
@@ -102,4 +108,23 @@
             <organization>Guanzon Group of Companies</organization>
         </developer>
     </developers>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <!-- Add any configuration options here -->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Guanzon-Central-Repository Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/mtcuison/Guanzon-Central-Repository/</url>
+        </repository>
+    </distributionManagement>
 </project>
