@@ -35,8 +35,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Properties;
 import javax.sql.RowSetMetaData;
 import javax.sql.rowset.RowSetMetaDataImpl;
 import javax.xml.parsers.ParserConfigurationException;
@@ -562,6 +564,21 @@ public class MiscUtil {
       lsSQL.append( " FROM " + foObject.getTable());
       return lsSQL.toString();
    }
+   
+    public static String makeSelect(GEntity foObject, String fsExclude) {
+        StringBuilder lsSQL = new StringBuilder();
+        lsSQL.append("SELECT ");
+        lsSQL.append(foObject.getColumn(1));
+
+        for(int lnCol=2; lnCol<=foObject.getColumnCount(); lnCol++){
+            if(!fsExclude.contains(foObject.getColumn(lnCol))){
+                lsSQL.append(", " + foObject.getColumn(lnCol));
+            }
+        }
+
+        lsSQL.append( " FROM " + foObject.getTable());
+        return lsSQL.toString();
+    }
 
    public static Date dateAdd(Date date, int toAdd){
       return dateAdd(date, Calendar.DATE, toAdd);
@@ -1242,5 +1259,36 @@ public class MiscUtil {
             e.printStackTrace();
         }
         return cachedRowSet;
+    }
+    
+    public static GRider Connect(){
+        String path;
+        if(System.getProperty("os.name").toLowerCase().contains("win")){
+            path = "D:/GGC_Maven_Systems";
+        }
+        else{
+            path = "/srv/GGC_Maven_Systems";
+        }
+        System.setProperty("sys.default.path.config", path);
+        
+        try {
+            Properties po_props = new Properties();
+            po_props.load(new FileInputStream(path + "/config/cas.properties"));
+            
+            if (po_props.getProperty("developer.mode").equals("1")){
+                GRider instance = new GRider("gRider");
+        
+                if (!instance.logUser("gRider", "M001000001")){
+                    System.err.println(instance.getErrMsg());
+                    System.exit(1);
+                }
+
+                return instance;
+            }
+        } catch (IOException e) {
+            System.exit(1);
+        }
+        
+        return null;
     }
 }
