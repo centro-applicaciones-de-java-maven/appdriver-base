@@ -1190,13 +1190,50 @@ public class MiscUtil {
      * @return true if successful, else false
      * @throws SQLException 
      */
-    public static boolean resultSet2XML(ResultSet foRS, String fsFileName) throws SQLException {
+    public static boolean resultSet2XML(GRider foGRider, ResultSet foRS, String fsFileName, String fsTableNme, String fsExcluded) throws SQLException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fsFileName))) {
             writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
             writer.write("<metadata>\n");
+            writer.write("\t<table>" + fsTableNme + "<table>\n");
 
             int lnRow = foRS.getMetaData().getColumnCount();
+            
+            String lsSQL = "SELECT" +
+                                "  sFormatxx" +
+                                ", sRegTypex" +
+                                ", sValueFrm" +
+                                ", sValueThr" +
+                                ", sValueLst" + 
+                            " FROM xxxSysColumn";
+            
+            String lsFormatxx;
+            String lsRegTypex;
+            String lsValueFrm;
+            String lsValueThr;
+            String lsValueLst;
+            
             for (int lnCtr = 1; lnCtr <= lnRow; lnCtr++){
+                lsFormatxx = null;
+                lsRegTypex = null;
+                lsValueFrm = null;
+                lsValueThr = null;
+                lsValueLst = null;
+                
+                if (!fsExcluded.contains(foRS.getMetaData().getColumnLabel(lnCtr))){
+                    String sql =  addCondition(lsSQL, "sTableNme = " + SQLUtil.toSQL(fsTableNme) +
+                                                        " AND sColumnNm = " + SQLUtil.toSQL(foRS.getMetaData().getColumnName(lnCtr)));
+                
+                    ResultSet oRS = foGRider.executeQuery(sql);
+
+                    if (oRS.next()){
+                        lsFormatxx = oRS.getString("sFormatxx");
+                        lsRegTypex = oRS.getString("sRegTypex");
+                        lsValueFrm = oRS.getString("sValueFrm");
+                        lsValueThr = oRS.getString("sValueThr");
+                        lsValueLst = oRS.getString("sValueLst");
+                    }
+                }
+                
                 writer.write("\t<column>\n");
                 writer.write("\t\t<COLUMN_NAME>" + foRS.getMetaData().getColumnName(lnCtr) + "</COLUMN_NAME>\n");
                 writer.write("\t\t<COLUMN_LABEL>" + foRS.getMetaData().getColumnLabel(lnCtr) + "</COLUMN_LABEL>\n");
@@ -1205,6 +1242,11 @@ public class MiscUtil {
                 writer.write("\t\t<LENGTH>" + foRS.getMetaData().getColumnDisplaySize(lnCtr) + "</LENGTH>\n");
                 writer.write("\t\t<PRECISION>" + foRS.getMetaData().getPrecision(lnCtr) + "</PRECISION>\n");
                 writer.write("\t\t<SCALE>" + foRS.getMetaData().getScale(lnCtr) + "</SCALE>\n");
+                writer.write("\t\t<FORMAT>" + lsFormatxx + "</FORMAT>\n");
+                writer.write("\t\t<REGTYPE>" + lsRegTypex + "</REGTYPE>\n");
+                writer.write("\t\t<FROM>" + lsValueFrm + "</FROM>\n");
+                writer.write("\t\t<THRU>" + lsValueThr + "</THRU>\n");
+                writer.write("\t\t<LIST>" + lsValueLst + "</LIST>\n");
                 writer.write("\t</column>\n");
             }
 
