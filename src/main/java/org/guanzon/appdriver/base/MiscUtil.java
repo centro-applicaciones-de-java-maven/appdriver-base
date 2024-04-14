@@ -1063,6 +1063,11 @@ public class MiscUtil {
     }
     
     //mac
+    public static String getColumnLabel(CachedRowSet loRS, int fnIndex) throws SQLException{
+        return loRS.getMetaData().getColumnLabel(fnIndex);
+    }
+    
+    //mac
     public static void getSchema(CachedRowSet loRS) throws SQLException{        
         int lnRow = loRS.getMetaData().getColumnCount();
         
@@ -1196,6 +1201,7 @@ public class MiscUtil {
                 writer.write("\t\t<COLUMN_NAME>" + foRS.getMetaData().getColumnName(lnCtr) + "</COLUMN_NAME>\n");
                 writer.write("\t\t<COLUMN_LABEL>" + foRS.getMetaData().getColumnLabel(lnCtr) + "</COLUMN_LABEL>\n");
                 writer.write("\t\t<DATA_TYPE>" + foRS.getMetaData().getColumnType(lnCtr) + "</DATA_TYPE>\n");
+                writer.write("\t\t<NULLABLE>" + foRS.getMetaData().isNullable(lnCtr) + "</NULLABLE>\n");
                 writer.write("\t\t<LENGTH>" + foRS.getMetaData().getColumnDisplaySize(lnCtr) + "</LENGTH>\n");
                 writer.write("\t\t<PRECISION>" + foRS.getMetaData().getPrecision(lnCtr) + "</PRECISION>\n");
                 writer.write("\t\t<SCALE>" + foRS.getMetaData().getScale(lnCtr) + "</SCALE>\n");
@@ -1212,8 +1218,8 @@ public class MiscUtil {
     }
     
     /**
-     * Converts XML file to CachedRowSet<br><br>
-     * 
+     * Converts XML file to CachedRowSet<br><br> 
+    * 
      * Author: Michael Cuison<br>
      * Date: 2024.04.06
      * 
@@ -1241,6 +1247,7 @@ public class MiscUtil {
                 String columnName = element.getElementsByTagName("COLUMN_NAME").item(0).getTextContent();
                 String columnLabel = element.getElementsByTagName("COLUMN_LABEL").item(0).getTextContent();
                 String dataType = element.getElementsByTagName("DATA_TYPE").item(0).getTextContent();
+                String nullable = element.getElementsByTagName("NULLABLE").item(0).getTextContent();
                 String length = element.getElementsByTagName("LENGTH").item(0).getTextContent();
                 String precision = element.getElementsByTagName("PRECISION").item(0).getTextContent();
                 String scale = element.getElementsByTagName("SCALE").item(0).getTextContent();
@@ -1248,6 +1255,7 @@ public class MiscUtil {
                 meta.setColumnName(i + 1, columnName);
                 meta.setColumnLabel(i + 1, columnLabel);
                 meta.setColumnType(i + 1, Integer.parseInt(dataType));
+                meta.setColumnType(i + 1, Integer.parseInt(nullable));
                 meta.setColumnDisplaySize(i + 1, Integer.parseInt(length));
                 meta.setPrecision(i + 1, Integer.parseInt(precision));
                 meta.setScale(i + 1, Integer.parseInt(scale));
@@ -1259,6 +1267,171 @@ public class MiscUtil {
             e.printStackTrace();
         }
         return cachedRowSet;
+    }
+    
+    public static JSONObject validateColumnValue(String fsXMLFile, String fsColumnNm, Object foValue){
+        JSONObject loJSON = new JSONObject();
+        
+        try {
+            File file = new File(fsXMLFile);
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(file);
+            doc.getDocumentElement().normalize();
+
+            NodeList nodeList = doc.getElementsByTagName("column");
+            int lnRow = nodeList.getLength();
+            
+            RowSetMetaData meta = new RowSetMetaDataImpl();
+            meta.setColumnCount(lnRow);
+            
+            for (int i = 0; i < lnRow; i++) {
+                Element element = (Element) nodeList.item(i);
+                String columnName = element.getElementsByTagName("COLUMN_LABEL").item(0).getTextContent();
+                
+                if (columnName.equals(fsColumnNm)){
+                    String dataType = element.getElementsByTagName("DATA_TYPE").item(0).getTextContent();
+                    String nullable = element.getElementsByTagName("NULLABLE").item(0).getTextContent();
+                    String length = element.getElementsByTagName("LENGTH").item(0).getTextContent();
+                    String precision = element.getElementsByTagName("PRECISION").item(0).getTextContent();
+                    String scale = element.getElementsByTagName("SCALE").item(0).getTextContent();
+                
+                    int columnType = Integer.parseInt(dataType);
+                    int columnDisplaySize = Integer.parseInt(length);
+                    int columnScale = Integer.parseInt(scale);
+                    int columnPrecision = Integer.parseInt(precision);
+                    boolean isNullable = nullable.equals("1");
+                    
+                    return validMetadata(columnType, columnDisplaySize, columnScale, columnPrecision, isNullable, foValue);
+                }
+            }
+            
+            loJSON.put("result", "error");
+            loJSON.put("message", "Unable to find column to validate.");
+        } catch (IOException | SQLException | ParserConfigurationException | DOMException | SAXException e) {
+            loJSON.put("result", "error");
+            loJSON.put("message", e.getMessage());
+        }
+        
+        return loJSON;
+    }
+    
+    public static JSONObject validateColumnValue(GRider foGRider, String fsTableName, String fsColumnNm, Object foValue){
+        String lsSQL = "SELECT * FROM xxxSysColumn";
+        
+        lsSQL = addCondition(lsSQL, "sTableNme = " + SQLUtil.toSQL(fsTableName) +
+                            " AND sColLabel = " + SQLUtil.toSQL(fsColumnNm)) ;
+        
+        ResultSet loRS = foGRider.executeQuery(lsSQL);
+        
+        JSONObject loJSON = new JSONObject();
+        
+        try {
+            if (loRS.next()){
+                int columnType = loRS.getInt("nColumnTp");
+                int columnDisplaySize = loRS.getInt("nLengthxx");
+                int columnScale = loRS.getInt("nScalexxx");
+                int columnPrecision = loRS.getInt("nPrecisnx");
+                boolean isNullable = loRS.getString("cIsNullxx").equals("1");
+                
+                return validMetadata(columnType, columnDisplaySize, columnScale, columnPrecision, isNullable, foValue);
+                
+                //todo: validate column value
+            } else {
+                loJSON.put("result", "success");
+                loJSON.put("message", "Column has no validation.");
+            }
+        } catch (SQLException e) {
+            loJSON.put("result", "error");
+            loJSON.put("message", e.getMessage());
+        }
+        
+        return loJSON;
+    }
+    
+    private static JSONObject validMetadata(int columnType, int columnDisplaySize, int columnScale, int columnPrecision, boolean isNullable, Object foValue){
+        JSONObject loJSON = new JSONObject();
+
+        //Check if the value is null and the column is not nullable
+        if (foValue == null && !isNullable) {
+            loJSON.put("result", "error");
+            loJSON.put("message", "Value cannot be null.");
+            return loJSON;
+        }
+
+        switch (columnType) {
+            case Types.INTEGER:
+            case Types.BIGINT:
+            case Types.SMALLINT:
+            case Types.TINYINT:
+                if (!(foValue instanceof Number)) {
+                    loJSON.put("result", "error");
+                    loJSON.put("message", "Value must be a number.");
+                    return loJSON;
+                }
+
+                long longValue = ((Number) foValue).longValue();
+                if (longValue < -Math.pow(10, columnPrecision) || longValue > Math.pow(10, columnPrecision) - 1) {
+                    loJSON.put("result", "error");
+                    loJSON.put("message", "Value is out of range.");
+                    return loJSON;
+                }
+                break;
+            case Types.FLOAT:
+            case Types.REAL:
+            case Types.DOUBLE:
+                if (!(foValue instanceof Number)) {
+                    loJSON.put("result", "error");
+                    loJSON.put("message", "Value must be a number.");
+                    return loJSON;
+                }
+
+                double doubleValue = ((Number) foValue).doubleValue();
+                if (doubleValue < -Math.pow(10, columnPrecision - columnScale) || doubleValue > Math.pow(10, columnPrecision - columnScale)) {
+                    loJSON.put("result", "error");
+                    loJSON.put("message", "Value is out of range.");
+                    return loJSON;
+                }
+                break;
+            case Types.DECIMAL:
+                if (!(foValue instanceof Number)) {
+                    loJSON.put("result", "error");
+                    loJSON.put("message", "Value must be a number.");
+                    return loJSON;
+                }
+                double decimalValue = ((Number) foValue).doubleValue();
+                if (decimalValue < -Math.pow(10, columnPrecision - columnScale) || decimalValue > Math.pow(10, columnPrecision - columnScale)) {
+                    loJSON.put("result", "error");
+                    loJSON.put("message", "Value is out of range.");
+                    return loJSON;
+                }
+                break;
+            case Types.CHAR:
+            case Types.VARCHAR:
+            case Types.LONGVARCHAR:
+                if (!(foValue instanceof String)) {
+                    loJSON.put("success", "error");
+                    loJSON.put("message", "Value must be a string.");
+                    return loJSON;
+                }
+
+                String stringValue = (String) foValue;
+                if (stringValue.length() > columnDisplaySize) {
+                    loJSON.put("result", "error");
+                    loJSON.put("message", "Value exceeds maximum length for the field.");
+                    return loJSON;
+                }
+                break;
+            default:
+                // Unsupported data type
+                loJSON.put("result", "error");
+                loJSON.put("message", "Unsupported data type for validation.");
+                return loJSON;
+        }
+        
+        loJSON.put("result", "success");
+        loJSON.put("message", "Value is valid for this field.");
+        return loJSON;
     }
     
     public static GRider Connect(){
