@@ -1194,7 +1194,7 @@ public class MiscUtil {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fsFileName))) {
             writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
             writer.write("<metadata>\n");
-            writer.write("\t<table>" + fsTableNme + "<table>\n");
+            writer.write("\t<table>" + fsTableNme + "</table>\n");
 
             int lnRow = foRS.getMetaData().getColumnCount();
             
@@ -1461,6 +1461,27 @@ public class MiscUtil {
                 if (stringValue.length() > columnDisplaySize) {
                     loJSON.put("result", "error");
                     loJSON.put("message", "Value exceeds maximum length for the field.");
+                    return loJSON;
+                }
+                break;
+            case Types.DATE:
+                if (!(foValue instanceof java.sql.Date)) {
+                    loJSON.put("result", "error");
+                    loJSON.put("message", "Value must be a date object.");
+                    return loJSON;
+                }
+                break;
+            case Types.TIME:
+                if (!(foValue instanceof java.sql.Time)) {
+                    loJSON.put("result", "error");
+                    loJSON.put("message", "Value must be a time object.");
+                    return loJSON;
+                }
+                break;
+            case Types.TIMESTAMP:
+                if (!(foValue instanceof java.sql.Timestamp)) {
+                    loJSON.put("result", "error");
+                    loJSON.put("message", "Value must be a java.sql.Timestamp object.");
                     return loJSON;
                 }
                 break;
