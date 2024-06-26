@@ -1465,7 +1465,7 @@ public class MiscUtil {
                 }
                 break;
             case Types.DATE:
-                if (!(foValue instanceof java.sql.Date)) {
+                if (!(foValue instanceof java.sql.Date || foValue instanceof java.util.Date)) {
                     loJSON.put("result", "error");
                     loJSON.put("message", "Value must be a date object.");
                     return loJSON;

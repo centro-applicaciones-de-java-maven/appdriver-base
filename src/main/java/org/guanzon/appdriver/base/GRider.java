@@ -219,23 +219,44 @@ public class GRider {
         String lsSQL;
       
         try{
-            if (!isTableExist("GGC_ISysDBF", "Employee_Master001") || "192.168.10.210;172.16.1.1".contains(psDBSrvrMn)){
-                //if ("GGC_Events;GGC_ISysDBF_new".contains(psDBNameXX) || "192.168.10.210;172.16.1.1".contains(psDBSrvrMn)){
+            if (psDBNameXX.equalsIgnoreCase("ggc_isysdbf")){
                 lsSQL = "SELECT a.*" +
                             ", '' sDeptIDxx" +
                             ", '' sEmpLevID" +
-                        " FROM xxxSysUser a" +
+                        " FROM xxxSysUserNew a" +
                         " WHERE a.sUserIDxx = " + SQLUtil.toSQL(fsUserID);
             } else {
-                lsSQL = "SELECT a.*" +
-                            ", IFNULL(b.sDeptIDxx, '') sDeptIDxx" +
-                            ", IFNULL(b.sEmpLevID, '') sEmpLevID" +
-                        " FROM xxxSysUser a" +
-                            " LEFT JOIN GGC_ISysDBF.Employee_Master001 b" +
-                                " ON a.sEmployNo = b.sEmployID" +
-                        " WHERE a.sUserIDxx = " + SQLUtil.toSQL(fsUserID);
+            
             }
-
+            
+            if (psDBNameXX.equalsIgnoreCase("ggc_isysdbf")){
+                lsSQL = "SELECT a.*" +
+                                ", IFNULL(b.sDeptIDxx, '') sDeptIDxx" +
+                                ", IFNULL(b.sEmpLevID, '') sEmpLevID" +
+                            " FROM xxxSysUserNew a" +
+                                " LEFT JOIN Employee_Master001 b" +
+                                    " ON a.sEmployNo = b.sEmployID" +
+                            " WHERE a.sUserIDxx = " + SQLUtil.toSQL(fsUserID);
+            } else {
+                if (!isTableExist("GGC_ISysDBF", "Employee_Master001") || "192.168.10.210;172.16.1.1".contains(psDBSrvrMn)){
+                    lsSQL = "SELECT a.*" +
+                                ", '' sDeptIDxx" +
+                                ", '' sEmpLevID" +
+                            " FROM xxxSysUser a" +
+                            " WHERE a.sUserIDxx = " + SQLUtil.toSQL(fsUserID);
+                } else {
+                    lsSQL = "SELECT a.*" +
+                                ", IFNULL(b.sDeptIDxx, '') sDeptIDxx" +
+                                ", IFNULL(b.sEmpLevID, '') sEmpLevID" +
+                            " FROM xxxSysUser a" +
+                                " LEFT JOIN GGC_ISysDBF.Employee_Master001 b" +
+                                    " ON a.sEmployNo = b.sEmployID" +
+                            " WHERE a.sUserIDxx = " + SQLUtil.toSQL(fsUserID);
+                }
+            }
+            
+            
+            
             psErrorMsg = "";
             psMessages = "";
 
@@ -770,8 +791,9 @@ public class GRider {
                         //System.out.println(loRs.getString("sUserIDxx") + "»" + this.Decrypt(loRs.getString("sLogNamex")));
                         if(loRs.getString("sUserIDxx").equalsIgnoreCase(lsNetWareX)){
                             //is netwares logname equal sysadmin
+                            //System.out.println(this.Decrypt(loRs.getString("sLogNamex")));
                             if(this.Decrypt(loRs.getString("sLogNamex")).equalsIgnoreCase(lsSysAdmin)){
-                            hasNetWare = true;
+                                hasNetWare = true;
                             }
                         }
                     }
@@ -1229,59 +1251,115 @@ public class GRider {
     }
 
     private String getSQ_LoadConfig(){
-        return  "SELECT" +
-                    "  a.sClientID" +
-                    ", a.sClientNm" +
-                    ", a.sAddressx" +
-                    ", a.sTownName" +
-                    ", a.sZippCode" +
-                    ", a.sProvName" +
-                    ", a.sTelNoxxx" +
-                    ", a.sFaxNoxxx" +
-                    ", a.sApproved" +
-                    ", a.sBranchCd" +
-                    ", b.sProdctID" +
-                    ", b.sProdctNm" +
-                    ", b.sApplName" +
-                    ", c.sApplPath" +
-                    ", c.sReptPath" +
-                    ", c.sImgePath" +
-                    ", c.sSysAdmin" +
-                    ", c.sNetWarex" +
-                    ", c.sMachinex" +
-                    ", c.dSysDatex" +
-                    ", c.dLicencex" +
-                    ", c.nNetError" +
-                    ", c.sSkinCode" +
-                    ", d.sComptrNm" +
-                    ", e.sBranchNm" +
-                    ", e.cWareHous" +
-                    ", e.cMainOffc" +
-                    ", f.sDBHostNm" +
-                    ", f.sAreaCode" +
-                " FROM xxxSysClient a" +
-                    ", xxxSysObject b" +
-                    ", xxxSysApplication c" +
-                       " LEFT JOIN xxxSysWorkStation d" +
-                            " ON c.sClientID = d.sClientID" +
-                                " AND d.sComptrNm = ?"  +
-                    ", Branch e" +
-                    ", Branch_Others f" + 
-                " WHERE c.sClientID = a.sClientID" +
-                    " AND c.sProdctID = b.sProdctID" +
-                    " AND a.sBranchCd = e.sBranchCd" +
-                    " AND a.sBranchCD = f.sBranchCD" +  
-                    " AND a.sClientID = ?" +
-                    " AND b.sProdctID = ?";
+        if (psDBNameXX.equalsIgnoreCase("ggc_isysdbf")){
+            return  "SELECT" +
+                "  a.sClientID" +
+                ", a.sClientNm" +
+                ", a.sAddressx" +
+                ", a.sTownName" +
+                ", a.sZippCode" +
+                ", a.sProvName" +
+                ", a.sTelNoxxx" +
+                ", a.sFaxNoxxx" +
+                ", a.sApproved" +
+                ", a.sBranchCd" +
+                ", b.sProdctID" +
+                ", b.sProdctNm" +
+                ", b.sApplName" +
+                ", c.sApplPath" +
+                ", c.sReptPath" +
+                ", c.sImgePath" +
+                ", c.sSysAdmin" +
+                ", c.sNetWarex" +
+                ", c.sMachinex" +
+                ", c.dSysDatex" +
+                ", c.dLicencex" +
+                ", c.nNetError" +
+                ", c.sSkinCode" +
+                ", d.sComptrNm" +
+                ", e.sBranchNm" +
+                ", e.cWareHous" +
+                ", e.cMainOffc" +
+                ", f.sDBHostNm" +
+                ", f.sAreaCode" +
+            " FROM xxxSysClient a" +
+                ", xxxSysObject b" +
+                ", xxxSysApplicationNew c" +
+                   " LEFT JOIN xxxSysWorkStation d" +
+                        " ON c.sClientID = d.sClientID" +
+                            " AND d.sComptrNm = ?"  +
+                ", Branch e" +
+                ", Branch_Others f" + 
+            " WHERE c.sClientID = a.sClientID" +
+                " AND c.sProdctID = b.sProdctID" +
+                " AND a.sBranchCd = e.sBranchCd" +
+                " AND a.sBranchCD = f.sBranchCD" +  
+                " AND a.sClientID = ?" +
+                " AND b.sProdctID = ?";
+        } else {
+            return  "SELECT" +
+                "  a.sClientID" +
+                ", a.sClientNm" +
+                ", a.sAddressx" +
+                ", a.sTownName" +
+                ", a.sZippCode" +
+                ", a.sProvName" +
+                ", a.sTelNoxxx" +
+                ", a.sFaxNoxxx" +
+                ", a.sApproved" +
+                ", a.sBranchCd" +
+                ", b.sProdctID" +
+                ", b.sProdctNm" +
+                ", b.sApplName" +
+                ", c.sApplPath" +
+                ", c.sReptPath" +
+                ", c.sImgePath" +
+                ", c.sSysAdmin" +
+                ", c.sNetWarex" +
+                ", c.sMachinex" +
+                ", c.dSysDatex" +
+                ", c.dLicencex" +
+                ", c.nNetError" +
+                ", c.sSkinCode" +
+                ", d.sComptrNm" +
+                ", e.sBranchNm" +
+                ", e.cWareHous" +
+                ", e.cMainOffc" +
+                ", f.sDBHostNm" +
+                ", f.sAreaCode" +
+            " FROM xxxSysClient a" +
+                ", xxxSysObject b" +
+                ", xxxSysApplication c" +
+                   " LEFT JOIN xxxSysWorkStation d" +
+                        " ON c.sClientID = d.sClientID" +
+                            " AND d.sComptrNm = ?"  +
+                ", Branch e" +
+                ", Branch_Others f" + 
+            " WHERE c.sClientID = a.sClientID" +
+                " AND c.sProdctID = b.sProdctID" +
+                " AND a.sBranchCd = e.sBranchCd" +
+                " AND a.sBranchCD = f.sBranchCD" +  
+                " AND a.sClientID = ?" +
+                " AND b.sProdctID = ?";
+        }
     }
 
     private String getSQ_Signature(){
-        return  "SELECT" +
-                    "  sUserIDxx" +
-                    ", sUserName" +
-                    ", sLogNamex" +
-                " FROM xxxSysUser" +
-                " WHERE sUserIDxx IN (?, ?)";
+        if (psDBNameXX.equalsIgnoreCase("ggc_isysdbf")){
+            return  "SELECT" +
+                        "  sUserIDxx" +
+                        ", sUserName" +
+                        ", sLogNamex" +
+                    " FROM xxxSysUserNew" +
+                    " WHERE sUserIDxx IN (?, ?)";
+        } else {
+            return  "SELECT" +
+                        "  sUserIDxx" +
+                        ", sUserName" +
+                        ", sLogNamex" +
+                    " FROM xxxSysUser" +
+                    " WHERE sUserIDxx IN (?, ?)";
+        }
     }
 
     /*
