@@ -112,19 +112,22 @@ public class GRider {
     private int pnNetError;
     private String psBranchCd = null;
     private String psAreaCode = null;
+    private String psDivsnCde = null;
     private Date pdLicencex = null;
 
     private String psCompName = null;
     private String psBranchNm = null;
+    private String psDivsnDsc = null;
     private String pcWareHous = null;
     private String pcMainOffc = null;
     private String psDBHostNm = null;
     
     private String psUserIDxx = null;
     private String psLogNoxxx = null;
-    private String psEmployNo = "";
-    private String psDeptIDxx = "";
-    private String psEmpLevID = "";
+    private String psLogNamex = null;
+    private String psEmployNo = null;
+    private String psDeptIDxx = null;
+    private String psEmpLevID = null;
     private int pnUserLevl = 0;
 
     /**
@@ -218,17 +221,7 @@ public class GRider {
            
         String lsSQL;
       
-        try{
-            if (psDBNameXX.equalsIgnoreCase("ggc_isysdbf")){
-                lsSQL = "SELECT a.*" +
-                            ", '' sDeptIDxx" +
-                            ", '' sEmpLevID" +
-                        " FROM xxxSysUserNew a" +
-                        " WHERE a.sUserIDxx = " + SQLUtil.toSQL(fsUserID);
-            } else {
-            
-            }
-            
+        try{           
             if (psDBNameXX.equalsIgnoreCase("ggc_isysdbf")){
                 lsSQL = "SELECT a.*" +
                                 ", IFNULL(b.sDeptIDxx, '') sDeptIDxx" +
@@ -242,7 +235,8 @@ public class GRider {
                     lsSQL = "SELECT a.*" +
                                 ", '' sDeptIDxx" +
                                 ", '' sEmpLevID" +
-                            " FROM xxxSysUser a" +
+                                ", '' xEmployNm" +
+                            " FROM xxxSysUserNew a" +
                             " WHERE a.sUserIDxx = " + SQLUtil.toSQL(fsUserID);
                 } else {
                     lsSQL = "SELECT a.*" +
@@ -254,9 +248,7 @@ public class GRider {
                             " WHERE a.sUserIDxx = " + SQLUtil.toSQL(fsUserID);
                 }
             }
-            
-            
-            
+
             psErrorMsg = "";
             psMessages = "";
 
@@ -305,6 +297,7 @@ public class GRider {
                 psUserIDxx = fsUserID;
                 pnUserLevl = loRs.getInt("nUserLevl");
                 psEmployNo = loRs.getString("sEmployNo");
+                psLogNamex = Decrypt(loRs.getString("sUserName"), SIGNATURE);
                 psDeptIDxx = loRs.getString("sDeptIDxx");
                 psEmpLevID = loRs.getString("sEmpLevID");
 
@@ -369,13 +362,42 @@ public class GRider {
         Connection loCon = null;
         Statement loStmt = null;
         ResultSet loRs = null;
-        String lsSQL = "SELECT *" +
-                        " FROM xxxSysUser" +
-                        " WHERE sUserIDxx = " + SQLUtil.toSQL(fsUserID);
-
-        if(poDS == null) return false;
-
+        String lsSQL;
+        
         try{
+//            String lsSQL = "SELECT *" +
+//                        " FROM xxxSysUser" +
+//                        " WHERE sUserIDxx = " + SQLUtil.toSQL(fsUserID);
+        
+            if (psDBNameXX.equalsIgnoreCase("ggc_isysdbf")){
+                lsSQL = "SELECT a.*" +
+                                ", IFNULL(b.sDeptIDxx, '') sDeptIDxx" +
+                                ", IFNULL(b.sEmpLevID, '') sEmpLevID" +
+                            " FROM xxxSysUserNew a" +
+                                " LEFT JOIN Employee_Master001 b" +
+                                    " ON a.sEmployNo = b.sEmployID" +
+                            " WHERE a.sUserIDxx = " + SQLUtil.toSQL(fsUserID);
+            } else {
+                if (!isTableExist("GGC_ISysDBF", "Employee_Master001") || "192.168.10.210;172.16.1.1".contains(psDBSrvrMn)){
+                    lsSQL = "SELECT a.*" +
+                                ", '' sDeptIDxx" +
+                                ", '' sEmpLevID" +
+                                ", '' xEmployNm" +
+                            " FROM xxxSysUser a" +
+                            " WHERE a.sUserIDxx = " + SQLUtil.toSQL(fsUserID);
+                } else {
+                    lsSQL = "SELECT a.*" +
+                                ", IFNULL(b.sDeptIDxx, '') sDeptIDxx" +
+                                ", IFNULL(b.sEmpLevID, '') sEmpLevID" +
+                            " FROM xxxSysUser a" +
+                                " LEFT JOIN GGC_ISysDBF.Employee_Master001 b" +
+                                    " ON a.sEmployNo = b.sEmployID" +
+                            " WHERE a.sUserIDxx = " + SQLUtil.toSQL(fsUserID);
+                }
+            }
+
+            if(poDS == null) return false;
+            
             loCon = doConnect();
             loStmt = loCon.createStatement();
             loRs = loStmt.executeQuery(lsSQL);
@@ -389,6 +411,10 @@ public class GRider {
             if(getErrMsg().equals("")){
                 psUserIDxx = fsUserID;
                 pnUserLevl = loRs.getInt("nUserLevl");
+                psEmployNo = loRs.getString("sEmployNo");
+                psLogNamex = Decrypt(loRs.getString("sUserName"), SIGNATURE);
+                psDeptIDxx = loRs.getString("sDeptIDxx");
+                psEmpLevID = loRs.getString("sEmpLevID");
                 lbisLog = true;
             }//if(getMessage().equals(""))
         } catch(SQLException ex){
@@ -753,6 +779,8 @@ public class GRider {
                     pcWareHous = loRs.getString("cWareHous");
                     pcMainOffc = loRs.getString("cMainOffc");
                     psDBHostNm = loRs.getString("sDBHostNm");    
+                    psDivsnCde = loRs.getString("sDivsnCde");
+                    psDivsnDsc = loRs.getString("sDivsnDsc");
                     isOkey = true;
                 }
             }
@@ -1203,6 +1231,14 @@ public class GRider {
     public String getBranchCode(){
         return psBranchCd;
     }
+    
+    public String getDivisionCode(){
+        return psDivsnCde;
+    }
+    
+    public String getDivisionName(){
+        return psDivsnDsc;
+    }
    
     public Date getLicenceDate(){
         return pdLicencex;
@@ -1236,6 +1272,10 @@ public class GRider {
    
     public String getEmployeeNo(){
         return psEmployNo;
+    }
+    
+    public String getLogName(){
+        return psLogNamex;
     }
    
     public String getDepartment(){
@@ -1282,14 +1322,18 @@ public class GRider {
                 ", e.cMainOffc" +
                 ", f.sDBHostNm" +
                 ", f.sAreaCode" +
+                ", g.sDivsnCde" +
+                ", g.sDivsnDsc" +
             " FROM xxxSysClient a" +
                 ", xxxSysObject b" +
                 ", xxxSysApplicationNew c" +
-                   " LEFT JOIN xxxSysWorkStation d" +
+                    " LEFT JOIN xxxSysWorkStation d" +
                         " ON c.sClientID = d.sClientID" +
                             " AND d.sComptrNm = ?"  +
                 ", Branch e" +
                 ", Branch_Others f" + 
+                    " LEFT JOIN Division g" +
+                        " ON f.cDivision = g.sDivsnCde" +
             " WHERE c.sClientID = a.sClientID" +
                 " AND c.sProdctID = b.sProdctID" +
                 " AND a.sBranchCd = e.sBranchCd" +
@@ -1327,14 +1371,18 @@ public class GRider {
                 ", e.cMainOffc" +
                 ", f.sDBHostNm" +
                 ", f.sAreaCode" +
+                ", g.sDivsnCde" +
+                ", g.sDivsnDsc" +
             " FROM xxxSysClient a" +
                 ", xxxSysObject b" +
                 ", xxxSysApplication c" +
-                   " LEFT JOIN xxxSysWorkStation d" +
+                    " LEFT JOIN xxxSysWorkStation d" +
                         " ON c.sClientID = d.sClientID" +
                             " AND d.sComptrNm = ?"  +
                 ", Branch e" +
                 ", Branch_Others f" + 
+                    " LEFT JOIN Division g" +
+                        " ON f.cDivision = g.sDivsnCde" +
             " WHERE c.sClientID = a.sClientID" +
                 " AND c.sProdctID = b.sProdctID" +
                 " AND a.sBranchCd = e.sBranchCd" +
