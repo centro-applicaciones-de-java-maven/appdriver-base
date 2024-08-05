@@ -236,7 +236,7 @@ public class GRider {
                                 ", '' sDeptIDxx" +
                                 ", '' sEmpLevID" +
                                 ", '' xEmployNm" +
-                            " FROM xxxSysUserNew a" +
+                            " FROM xxxSysUser a" +
                             " WHERE a.sUserIDxx = " + SQLUtil.toSQL(fsUserID);
                 } else {
                     lsSQL = "SELECT a.*" +

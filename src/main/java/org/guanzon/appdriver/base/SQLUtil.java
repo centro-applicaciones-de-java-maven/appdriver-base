@@ -50,6 +50,7 @@ public class SQLUtil
     public static String FORMAT_MEDIUM_DATE  = "MMM dd, yyyy";
     public static String FORMAT_SHORT_DATE = "yyyy-MM-dd";
     public static String FORMAT_TIMESTAMP  = "yyyy-MM-dd HH:mm:ss";
+    public static String FORMAT_TIMESTAMPX  = "yyyyMMddHHmmss";
     public static String FORMAT_SHORT_DATEX = "yyyyMMdd";
     public static String FORMAT_SHORT_YEAR = "yy";
     public static String FORMAT_SHORT_YEAR_MONTH = "yyyyMM";

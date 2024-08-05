@@ -60,9 +60,9 @@ public class MiscUtil {
    public static String getPCName(){
       try{
          return InetAddress.getLocalHost().getHostName();
-      }catch (Exception ex){
+      }catch (UnknownHostException ex){
          ex.printStackTrace();
-         return null;
+         return "restgk";
       }
    }
 
