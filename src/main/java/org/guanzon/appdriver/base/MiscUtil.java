@@ -1344,7 +1344,7 @@ public class MiscUtil {
                     int columnPrecision = Integer.parseInt(precision);
                     boolean isNullable = nullable.equals("1");
                     
-                    return validMetadata(columnType, columnDisplaySize, columnScale, columnPrecision, isNullable, foValue);
+                    return validMetadata(fsColumnNm, columnType, columnDisplaySize, columnScale, columnPrecision, isNullable, foValue);
                 }
             }
             
@@ -1376,7 +1376,7 @@ public class MiscUtil {
                 int columnPrecision = loRS.getInt("nPrecisnx");
                 boolean isNullable = loRS.getString("cIsNullxx").equals("1");
                 
-                return validMetadata(columnType, columnDisplaySize, columnScale, columnPrecision, isNullable, foValue);
+                return validMetadata(fsColumnNm, columnType, columnDisplaySize, columnScale, columnPrecision, isNullable, foValue);
                 
                 //todo: validate column value
             } else {
@@ -1391,7 +1391,7 @@ public class MiscUtil {
         return loJSON;
     }
     
-    private static JSONObject validMetadata(int columnType, int columnDisplaySize, int columnScale, int columnPrecision, boolean isNullable, Object foValue){
+    private static JSONObject validMetadata(String fsColumnNm, int columnType, int columnDisplaySize, int columnScale, int columnPrecision, boolean isNullable, Object foValue){
         JSONObject loJSON = new JSONObject();
 
         //Check if the value is null and the column is not nullable
@@ -1408,14 +1408,14 @@ public class MiscUtil {
             case Types.TINYINT:
                 if (!(foValue instanceof Number)) {
                     loJSON.put("result", "error");
-                    loJSON.put("message", "Value must be a number.");
+                    loJSON.put("message", "Value for " + fsColumnNm + "must be a number.");
                     return loJSON;
                 }
 
                 long longValue = ((Number) foValue).longValue();
                 if (longValue < -Math.pow(10, columnPrecision) || longValue > Math.pow(10, columnPrecision) - 1) {
                     loJSON.put("result", "error");
-                    loJSON.put("message", "Value is out of range.");
+                    loJSON.put("message", "Value for " + fsColumnNm + " is out of range.");
                     return loJSON;
                 }
                 break;
@@ -1424,27 +1424,27 @@ public class MiscUtil {
             case Types.DOUBLE:
                 if (!(foValue instanceof Number)) {
                     loJSON.put("result", "error");
-                    loJSON.put("message", "Value must be a number.");
+                    loJSON.put("message", "Value for " + fsColumnNm + " must be a number.");
                     return loJSON;
                 }
 
                 double doubleValue = ((Number) foValue).doubleValue();
                 if (doubleValue < -Math.pow(10, columnPrecision - columnScale) || doubleValue > Math.pow(10, columnPrecision - columnScale)) {
                     loJSON.put("result", "error");
-                    loJSON.put("message", "Value is out of range.");
+                    loJSON.put("message", "Value for " + fsColumnNm + " is out of range.");
                     return loJSON;
                 }
                 break;
             case Types.DECIMAL:
                 if (!(foValue instanceof Number)) {
                     loJSON.put("result", "error");
-                    loJSON.put("message", "Value must be a number.");
+                    loJSON.put("message", "Value for " + fsColumnNm + " must be a number.");
                     return loJSON;
                 }
                 double decimalValue = ((Number) foValue).doubleValue();
                 if (decimalValue < -Math.pow(10, columnPrecision - columnScale) || decimalValue > Math.pow(10, columnPrecision - columnScale)) {
                     loJSON.put("result", "error");
-                    loJSON.put("message", "Value is out of range.");
+                    loJSON.put("message", "Value for " + fsColumnNm + " is out of range.");
                     return loJSON;
                 }
                 break;
@@ -1453,35 +1453,35 @@ public class MiscUtil {
             case Types.LONGVARCHAR:
                 if (!(foValue instanceof String)) {
                     loJSON.put("success", "error");
-                    loJSON.put("message", "Value must be a string.");
+                    loJSON.put("message", "Value for " + fsColumnNm + " must be a string.");
                     return loJSON;
                 }
 
                 String stringValue = (String) foValue;
                 if (stringValue.length() > columnDisplaySize) {
                     loJSON.put("result", "error");
-                    loJSON.put("message", "Value exceeds maximum length for the field.");
+                    loJSON.put("message", "Value for " + fsColumnNm + " exceeds maximum length for the field.");
                     return loJSON;
                 }
                 break;
             case Types.DATE:
                 if (!(foValue instanceof java.sql.Date || foValue instanceof java.util.Date)) {
                     loJSON.put("result", "error");
-                    loJSON.put("message", "Value must be a date object.");
+                    loJSON.put("message", "Value for " + fsColumnNm + " must be a date object.");
                     return loJSON;
                 }
                 break;
             case Types.TIME:
                 if (!(foValue instanceof java.sql.Time)) {
                     loJSON.put("result", "error");
-                    loJSON.put("message", "Value must be a time object.");
+                    loJSON.put("message", "Value for " + fsColumnNm + " must be a time object.");
                     return loJSON;
                 }
                 break;
             case Types.TIMESTAMP:
                 if (!(foValue instanceof java.sql.Timestamp)) {
                     loJSON.put("result", "error");
-                    loJSON.put("message", "Value must be a java.sql.Timestamp object.");
+                    loJSON.put("message", "Value for " + fsColumnNm + " must be a java.sql.Timestamp object.");
                     return loJSON;
                 }
                 break;
