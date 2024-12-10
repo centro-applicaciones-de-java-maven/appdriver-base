@@ -256,7 +256,7 @@ public class MiscUtil {
     public static String makeSQL(GEntity foNewEntity){
         StringBuilder lsSQL = new StringBuilder();
         StringBuilder lsNme = new StringBuilder();
-        for(int lnCol = 1; !foNewEntity.getColumn(lnCol).equals("");lnCol++){
+        for(int lnCol = 1; lnCol <= foNewEntity.getColumnCount();lnCol++){
            lsSQL.append(", " + SQLUtil.toSQL(foNewEntity.getValue(lnCol)));
            lsNme.append(", " + foNewEntity.getColumn(lnCol));
         }
@@ -268,7 +268,7 @@ public class MiscUtil {
     public static String makeSQL(GEntity foNewEntity, String fsExclude){
         StringBuilder lsSQL = new StringBuilder();
         StringBuilder lsNme = new StringBuilder();
-        for(int lnCol = 1; !foNewEntity.getColumn(lnCol).equals("");lnCol++){
+        for(int lnCol = 1; lnCol <= foNewEntity.getColumnCount();lnCol++){
             if(!fsExclude.contains(foNewEntity.getColumn(lnCol))){
                lsSQL.append(", " + SQLUtil.toSQL(foNewEntity.getValue(lnCol)));
                lsNme.append(", " + foNewEntity.getColumn(lnCol));
@@ -284,7 +284,7 @@ public class MiscUtil {
         int lnCol1 = 0;
         int lnCol2 = 0;
 
-        for(int lnCol = 1; !foNewEntity.getColumn(lnCol).equals("");lnCol++){
+        for(int lnCol = 1; lnCol <= foNewEntity.getColumnCount();lnCol++){
             if(lnCol1 == 0 || lnCol2 == 0){
                 if(foNewEntity.getColumn(lnCol).equalsIgnoreCase("smodified"))
                     lnCol1 = lnCol;
@@ -322,7 +322,7 @@ public class MiscUtil {
         int lnCol1 = 0;
         int lnCol2 = 0;
 
-        for(int lnCol = 1; !foNewEntity.getColumn(lnCol).equals("");lnCol++){
+        for(int lnCol = 1; lnCol <= foNewEntity.getColumnCount();lnCol++){
             if(!fsExclude.contains(foNewEntity.getColumn(lnCol))){
                 if(lnCol1 == 0 || lnCol2 == 0){
                     if(foNewEntity.getColumn(lnCol).equalsIgnoreCase("smodified"))
